@@ -1,13 +1,10 @@
 package com.example.penguinproject.jwt;
 
 
-import com.example.penguinproject.common.Constants;
-import com.example.penguinproject.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.io.IOException;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -65,7 +62,7 @@ public class JwtService {
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
-    public boolean isTokenExpired(String token) {
+    private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
@@ -88,7 +85,6 @@ public class JwtService {
                 .setSigningKey(getSignInKey())
                 .build()
                 .parseClaimsJws(token).getBody();
-
     }
 
     private Key getSignInKey() {

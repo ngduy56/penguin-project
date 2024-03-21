@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,10 +37,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+
     public AuthenticationResponse register(RegisterRequest request) {
         try {
             Optional<User> userDb = userRepository.findByEmail(request.getEmail());
-            if(userDb.isPresent()) {
+            if (userDb.isPresent()) {
                 return AuthenticationResponse.builder()
                         .accessToken(null)
                         .refreshToken(null)
@@ -52,6 +54,7 @@ public class AuthService {
                     .email(request.getEmail())
                     .password(passwordEncoder.encode(request.getPassword()))
                     .role(Role.USER)
+                    .createAt(new Date())
                     .build();
             User savedUser = userRepository.save(user);
             String jwtToken = jwtService.generateToken(user);
@@ -117,11 +120,10 @@ public class AuthService {
     }
 
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        System.out.println("request: " +request  +"response: " +response);
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         final String refreshToken;
         final String userEmail;
-        if (authHeader == null ||!authHeader.startsWith(Constants.TOKEN_PREFIX)) {
+        if (authHeader == null || !authHeader.startsWith(Constants.TOKEN_PREFIX)) {
             return;
         }
         refreshToken = authHeader.substring(7);

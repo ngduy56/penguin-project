@@ -14,24 +14,24 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class SecurityConfig  {
-        private final JwtAuthenticationFilter jwtAuthFilter;
-        private final AuthenticationProvider authenticationProvider;
+public class SecurityConfig {
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final AuthenticationProvider authenticationProvider;
 
-        public static final String[] WEB_IGNORING = {
-                "/swagger-resources/**",
-                "/swagger-ui.html**",
-                "/swagger-ui.html",
-                "/swagger-ui/**",
-                "/v2/api-docs/**",
-                "/webjars/**",
-                "/public/**",
-                "/api/v1/auth/**"
-        };
+    public static final String[] WEB_IGNORING = {
+            "/swagger-resources/**",
+            "/swagger-ui.html**",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/v2/api-docs/**",
+            "/webjars/**",
+            "/public/**",
+            "/api/v1/auth/**"
+    };
 
     @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-            http
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
                 .csrf()
                 .disable()
                 .authorizeHttpRequests()
@@ -46,6 +46,6 @@ public class SecurityConfig  {
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-            return http.build();
-        }
+        return http.build();
+    }
 }

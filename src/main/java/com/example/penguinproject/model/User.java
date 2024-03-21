@@ -29,6 +29,9 @@ public class User implements UserDetails {
     private Date dob;
     private String description;
 
+    private Date createAt;
+    private Date updateAt;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 
