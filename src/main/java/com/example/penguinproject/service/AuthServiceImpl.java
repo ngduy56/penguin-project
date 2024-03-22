@@ -1,6 +1,5 @@
 package com.example.penguinproject.service;
 
-
 import com.example.penguinproject.common.AuthenticationRequest;
 import com.example.penguinproject.common.AuthenticationResponse;
 import com.example.penguinproject.common.Constants;
@@ -13,9 +12,8 @@ import com.example.penguinproject.model.User;
 import com.example.penguinproject.repository.TokenRepository;
 import com.example.penguinproject.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -30,15 +28,20 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
-public class AuthService {
+public class AuthServiceImpl implements AuthService2 {
 
-    private final UserRepository userRepository;
-    private final TokenRepository tokenRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private TokenRepository tokenRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtService jwtService;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
+    @Override
     public AuthenticationResponse register(RegisterRequest request) {
         try {
             Optional<User> userDb = userRepository.findByEmail(request.getEmail());
@@ -75,7 +78,8 @@ public class AuthService {
         }
     }
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    @Override
+    public AuthenticationResponse login(AuthenticationRequest request) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
             User user = userRepository.findByEmail(request.getEmail())
@@ -98,6 +102,41 @@ public class AuthService {
         }
     }
 
+    @Override
+    public AuthenticationResponse refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String refreshToken;
+        final String userEmail;
+        AuthenticationResponse authResponse = null;
+        if (authHeader == null || !authHeader.startsWith(Constants.TOKEN_PREFIX)) {
+            return AuthenticationResponse.builder()
+                    .accessToken(null)
+                    .refreshToken(null)
+                    .build();
+        }
+        refreshToken = authHeader.substring(7);
+        userEmail = jwtService.extractUsername(refreshToken);
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
+            if (jwtService.isTokenValid(refreshToken, user)) {
+                String accessToken = jwtService.generateToken(user);
+                revokeAllUserTokens(user);
+                saveUserToken(user, accessToken);
+                authResponse = AuthenticationResponse.builder()
+                        .accessToken(accessToken)
+                        .refreshToken(refreshToken)
+                        .build();
+                try {
+                    new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return authResponse;
+    }
+
     private void saveUserToken(User user, String jwtToken) {
         Token token = Token.builder()
                 .user(user)
@@ -118,30 +157,5 @@ public class AuthService {
             token.setRevoked(true);
         });
         tokenRepository.saveAll(validUserTokens);
-    }
-
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        final String refreshToken;
-        final String userEmail;
-        if (authHeader == null || !authHeader.startsWith(Constants.TOKEN_PREFIX)) {
-            return;
-        }
-        refreshToken = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(refreshToken);
-        if (userEmail != null) {
-            User user = userRepository.findByEmail(userEmail)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
-            if (jwtService.isTokenValid(refreshToken, user)) {
-                String accessToken = jwtService.generateToken(user);
-                revokeAllUserTokens(user);
-                saveUserToken(user, accessToken);
-                AuthenticationResponse authResponse = AuthenticationResponse.builder()
-                        .accessToken(accessToken)
-                        .refreshToken(refreshToken)
-                        .build();
-                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-            }
-        }
     }
 }

@@ -5,6 +5,7 @@ import com.example.penguinproject.common.AuthenticationRequest;
 import com.example.penguinproject.common.AuthenticationResponse;
 import com.example.penguinproject.common.RegisterRequest;
 import com.example.penguinproject.service.AuthService;
+import com.example.penguinproject.service.AuthService2;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,23 +25,23 @@ import java.io.IOException;
 public class AuthController {
 
     @Autowired
-    private final AuthService authService;
+    private final AuthService2 authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request));
+    public AuthenticationResponse register(@RequestBody RegisterRequest request) {
+        return authService.register(request);
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody AuthenticationRequest request) {
-        return ResponseEntity.ok(authService.authenticate(request));
+    public AuthenticationResponse register(@RequestBody AuthenticationRequest request) {
+        return authService.login(request);
     }
 
     @PostMapping("/refresh-token")
-    public void refreshToken(
+    public AuthenticationResponse refreshToken(
             HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException {
-        authService.refreshToken(request, response);
+        return authService.refreshToken(request, response);
     }
 }
