@@ -6,6 +6,7 @@ import com.example.penguinproject.common.AuthenticationResponse;
 import com.example.penguinproject.common.RegisterRequest;
 import com.example.penguinproject.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +23,7 @@ import java.io.IOException;
 
 public class AuthController {
 
+    @Autowired
     private final AuthService authService;
 
     @PostMapping("/register")

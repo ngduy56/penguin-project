@@ -1,5 +1,6 @@
 package com.example.penguinproject.controller;
 
+import com.example.penguinproject.common.ApiResponse;
 import com.example.penguinproject.dto.UserDto;
 import com.example.penguinproject.model.User;
 import com.example.penguinproject.service.UserService;
@@ -24,7 +25,7 @@ public class UserController {
     }
 
     @GetMapping("/getAllUsers")
-    public ResponseEntity<List<UserDto>> getAllUsers(@RequestParam(required = false) String email) {
+    public ResponseEntity<ApiResponse<List<UserDto>>> getAllUsers(@RequestParam(required = false) String email) {
         return userService.getAllUsers(email);
     }
 
@@ -34,12 +35,12 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDto> updateTutorial(@PathVariable("id") Integer id, @RequestBody UserDto userDto) {
+    public ResponseEntity<UserDto> editUser(@PathVariable("id") Integer id, @RequestBody UserDto userDto) {
         return userService.editUser(id, userDto);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteTutorial(@PathVariable("id") Integer id) {
+    public ResponseEntity<String> deleteUser(@PathVariable("id") Integer id) {
         return userService.deleteUser(id);
     }
 }

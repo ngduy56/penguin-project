@@ -1,6 +1,7 @@
 package com.example.penguinproject.service;
 
 
+import com.example.penguinproject.common.ApiResponse;
 import com.example.penguinproject.dto.UserDto;
 import com.example.penguinproject.model.Token;
 import com.example.penguinproject.model.User;
@@ -22,17 +23,17 @@ public class UserServiceImpl implements UserService {
     private TokenRepository tokenRepository;
 
     @Override
-    public ResponseEntity<List<UserDto>> getAllUsers(String email) {
+    public ResponseEntity<ApiResponse<List<UserDto>>> getAllUsers(String email) {
         List<UserDto> users = new ArrayList<>();
+        ApiResponse<List<UserDto>> response = null;
         try {
             users = userRepository.getAllUsers(email);
-            if (users.isEmpty()) {
-                return new ResponseEntity<>(null, HttpStatus.OK);
-            }
+            response = new ApiResponse<>(200, "Success", users);
         } catch (Exception e) {
             e.printStackTrace();
+            response = new ApiResponse<>(500, "Error", null);
         }
-        return new ResponseEntity<>(users, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     @Override
